@@ -82,16 +82,18 @@ class Game implements Verbs  {
 
     public void getItem(String itemInput, Location currentLocation) throws IOException {
 
+        // create a list out of getItem array. Add Item to roomItem list
         List<String> roomItems = new ArrayList<String>(Arrays.asList(currentLocation.getItem()));
-
-        // Add items to room "drop", use later if we add DROP feature
-//        roomItems.add("stones");
-//        roomItems.add("pebbles");
-        // Pick up item step 1, remove from room items
         roomItems.remove(itemInput);
+
+        // NOTE convert roomItems List to array. Update masterObj with changes
+        String[] updatedRoomItems = roomItems.toArray(new String[0]);
+        currentLocation.setItem(updatedRoomItems);
+
+        // Pick up item, remove from room items
         inventoryItems.add(itemInput);
 
-        // Pick up item step 2, Put item in inventory
+        // Pick up item, Put item in inventory
         String[] toInventory = new String[inventoryItems.size()];
         toInventory = inventoryItems.toArray(toInventory);
         inventory.setItem(toInventory);
@@ -99,6 +101,31 @@ class Game implements Verbs  {
         // INVENTORY PRINT OUT
         System.out.println("\n");
         System.out.printf("You picked up a \033[32m%s\033[0m and added it to your inventory.\n", itemInput);
+        // END of INVENTORY
+
+
+    }
+
+    public void dropItem(String itemInput, Location currentLocation) throws IOException {
+
+        List<String> roomItems = new ArrayList<String>(Arrays.asList(currentLocation.getItem()));
+
+        // Add items to room "drop", use later if we add DROP feature
+        roomItems.add(itemInput);
+
+        // Pick up item step 2, Put item in inventory
+        String[] toInventory = new String[inventoryItems.size()];
+        String[] emptyInventory = {};
+        toInventory = inventoryItems.toArray(toInventory);
+        inventory.setItem(emptyInventory);
+        inventory.setItem(toInventory);
+
+        // Remove from inventoryItems
+        inventoryItems.remove(itemInput);
+
+        // INVENTORY PRINT OUT
+        System.out.println("\n");
+        System.out.printf("You dropped a \033[32m%s\033[0m.\n", itemInput);
         // END of INVENTORY
 
         // NOTE convert roomItems List to array. Update masterObj with changes
@@ -165,7 +192,7 @@ class Game implements Verbs  {
                 HelpMenu.printMenuHeader();
                 HelpMenu.buildMenu().forEach(HelpMenu::printMenu);
             }
-            else if(userInput.equals("view")) {
+            else if(userInput.equals("view") || userInput.equals("map")  ) {
                 KingdomMap.printMapHeader();
                 KingdomMap.showKingdomMap().forEach(KingdomMap::printMap);
                 System.out.println("\n\u001B[35m                                              *********  You are in the " + currentLocation.getName() + ". *********\u001B[0m\n\n");
@@ -185,8 +212,24 @@ class Game implements Verbs  {
                         }
                 }
                 else if (Verbs.getItemActions().contains(inputVerb)) {
-                        if (Arrays.toString(currentLocation.getItem()).contains(inputNoun)){
+                        if (Arrays.toString(currentLocation.getItem()).contains(inputNoun)
+                                && inputVerb.toLowerCase().equals("get")){
                             getItem(inputNoun, currentLocation);
+                        }
+                        else if (!Arrays.toString(currentLocation.getItem()).contains(inputNoun)
+                                && inputVerb.toLowerCase().equals("get")){
+                            System.out.println("There is no " + inputNoun + " in this room.");
+                        }
+
+                        else if (!Arrays.toString(currentLocation.getItem()).contains(inputNoun)
+                                && inventoryItems.contains(inputNoun)
+                                && inputVerb.toLowerCase().equals("drop")){
+                            System.out.println("You drop a " + inputNoun + " in this room.");
+                            dropItem(inputNoun, currentLocation);
+                        }
+                        else if (!Arrays.toString(currentLocation.getItem()).contains(inputNoun)
+                                && inputVerb.toLowerCase().equals("drop")){
+                            System.out.println("There is no " + inputNoun + " in your inventory.");
                         }
 
                 }
